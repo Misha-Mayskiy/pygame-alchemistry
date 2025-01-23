@@ -23,5 +23,11 @@ A 2D game where players combine elements to discover new ones, built with Python
    python main.py
    ```
 
+## Getting Started
+Here's how the interface is structured:
+- **Left Panel**: Displays unlocked elements.
+- **Center Area**: Drag elements here to combine them.
+- **Bottom Area**: Drag elements here to remove them from the field.
+
 ## License
 This project is licensed under the MIT License.
