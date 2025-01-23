@@ -1,0 +1,11 @@
+{
+    "elements": [
+        {"name": "Air", "image": "air.png"},
+        {"name": "Fire", "image": "fire.png"},
+        {"name": "Water", "image": "water.png"}
+    ],
+    "combinations": {
+        "Air+Fire": "Energy",
+        "Fire+Water": "Steam"
+    }
+}
