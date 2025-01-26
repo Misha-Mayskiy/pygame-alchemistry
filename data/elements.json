@@ -1,11 +1,32 @@
 {
-    "elements": [
-        {"name": "Air", "image": "air.png"},
-        {"name": "Fire", "image": "fire.png"},
-        {"name": "Water", "image": "water.png"}
-    ],
-    "combinations": {
-        "Air+Fire": "Energy",
-        "Fire+Water": "Steam"
-    }
+  "elements": [
+    {"name": "Воздух", "image": "air.png"},
+    {"name": "Огонь", "image": "fire.png"},
+    {"name": "Земля", "image": "earth.png"},
+    {"name": "Вода", "image": "water.png"},
+    {"name": "Энергия", "image": "energy.png"},
+    {"name": "Пар", "image": "steam.png"},
+    {"name": "Болото", "image": "swamp.png"},
+    {"name": "Дождь", "image": "rain.png"},
+    {"name": "Пыль", "image": "dust.png"},
+    {"name": "Лава", "image": "lava.png"},
+    {"name": "Жизнь", "image": "life.png"},
+    {"name": "Трава", "image": "grass.png"},
+    {"name": "Дерево", "image": "tree.png"},
+    {"name": "Камень", "image": "stone.png"},
+    {"name": "Металл", "image": "metal.png"}
+  ],
+  "combinations": {
+    "Воздух+Огонь": "Энергия",
+    "Вода+Земля": "Болото",
+    "Огонь+Вода": "Пар",
+    "Воздух+Вода": "Дождь",
+    "Огонь+Земля": "Лава",
+    "Воздух+Земля": "Пыль",
+    "Болото+Энергия": "Жизнь",
+    "Жизнь+Земля": "Трава",
+    "Трава+Вода": "Дерево",
+    "Земля+Огонь": "Камень",
+    "Камень+Огонь": "Металл"
+  }
 }
