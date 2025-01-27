@@ -7,21 +7,21 @@ import json
 pygame.init()
 
 # Screen dimensions
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 1000, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Игра Алхимия")
 
 # Colors
 WHITE = (255, 255, 255)
 GRAY = (200, 200, 200)
-DARK_GRAY = (250, 0, 0)
+RED = (250, 0, 0)
 LIGHT_BLUE = (173, 216, 230)
 BLACK = (0, 0, 0)
 TRANSPARENT = (0, 0, 0, 0)
 
 # Fonts
 font = pygame.font.SysFont(None, 24)
-large_font = pygame.font.SysFont(None, 36)
+large_font = pygame.font.SysFont(None, 32)
 
 # Load elements and combinations from JSON
 with open("data/elements.json", "r", encoding="utf-8") as file:
@@ -31,16 +31,18 @@ unlocked_elements = ["Воздух", "Огонь", "Земля", "Вода"]
 elements = data["elements"]
 combinations = data["combinations"]
 
-# Load placeholder icon
 ELEMENT_SIZE = 50
+
+# Load placeholder icon
 placeholder_path = os.path.join("images", "placeholder.png")
 if os.path.exists(placeholder_path):
-    placeholder_icon = pygame.image.load(placeholder_path)
-    placeholder_icon = pygame.transform.scale(placeholder_icon, (ELEMENT_SIZE, ELEMENT_SIZE))
+    placeholder_icon = pygame.image.load(placeholder_path).convert_alpha()
+    placeholder_icon = pygame.transform.smoothscale(placeholder_icon, (ELEMENT_SIZE, ELEMENT_SIZE))
 else:
     raise FileNotFoundError("Placeholder image 'placeholder.png' not found in 'images' folder!")
 
 # Отступы и размеры для левой панели
+ROW_GAP = 20
 PANEL_PADDING = 10
 ELEMENT_PADDING = 15
 ELEMENT_COLUMNS = 3  # Количество столбцов
@@ -53,7 +55,7 @@ for i, el in enumerate(elements):
         image_path = os.path.join("images", el["image"])
         if os.path.exists(image_path):
             image = pygame.image.load(image_path)
-            image = pygame.transform.scale(image, (ELEMENT_SIZE, ELEMENT_SIZE))
+            image = pygame.transform.smoothscale(image, (ELEMENT_SIZE, ELEMENT_SIZE))
         else:
             raise FileNotFoundError
     except FileNotFoundError:
@@ -82,6 +84,15 @@ drag_offset = (0, 0)
 animations = []  # Holds animations like removal or combination
 
 
+def get_element_position(index, cols=3, spacing=20, x_start=20, y_start=50):
+    """Рассчитывает позицию элемента в сетке."""
+    row = index // cols
+    col = index % cols
+    x = x_start + col * (ELEMENT_SIZE + spacing)
+    y = y_start + row * (ELEMENT_SIZE + spacing)
+    return x, y
+
+
 def combine_elements(el1, el2):
     """Обработка комбинации двух элементов."""
     combo_key = f"{el1['name']}+{el2['name']}"
@@ -93,12 +104,31 @@ def combine_elements(el1, el2):
             unlocked_elements.append(new_name)
             print(f"Новый элемент открыт: {new_name}")
 
+        # Найти данные о новом элементе в JSON
+        new_element_data = next((el for el in elements if el["name"] == new_name), None)
+
+        # Попытка загрузить изображение для нового элемента
+        if new_element_data:
+            try:
+                image_path = os.path.join("images", new_element_data["image"])
+                if os.path.exists(image_path):
+                    new_icon = pygame.image.load(image_path).convert_alpha()
+                    new_icon = pygame.transform.smoothscale(new_icon, (ELEMENT_SIZE, ELEMENT_SIZE))
+                else:
+                    print(f"Image not found for element: {new_name} ({image_path}). Using placeholder.")
+                    raise FileNotFoundError
+            except FileNotFoundError:
+                new_icon = placeholder_icon  # Использовать placeholder, если изображение отсутствует
+        else:
+            new_icon = placeholder_icon  # Использовать placeholder, если данных нет
+
         # Создаем новый элемент на поле
         new_element = {
             "name": new_name,
-            "icon": placeholder_icon,  # По умолчанию - шаблонная иконка
+            "icon": new_icon,  # По умолчанию - шаблонная иконка
             "pos": el1["pos"]
         }
+
         return new_element
     return None
 
@@ -106,11 +136,11 @@ def combine_elements(el1, el2):
 def render_unlocked_elements():
     """Отображение открытых элементов в панели в виде сетки."""
     cols = 3  # Количество столбцов
-    spacing = 10  # Расстояние между элементами
+    spacing = 20  # Расстояние между элементами
     size = ELEMENT_SIZE  # Размер иконки
 
     # Начальная позиция
-    x_start = 10
+    x_start = 20
     y_start = 50
 
     for i, element_name in enumerate(unlocked_elements):
@@ -124,10 +154,10 @@ def render_unlocked_elements():
         screen.blit(icon, (x, y))
 
         # Подпись под элементом
-        label = font.render(element_name, True, BLACK)
-        label_x = x + size // 2 - label.get_width() // 2
-        label_y = y + size + 5
-        screen.blit(label, (label_x, label_y))
+        # label = font.render(element_name, True, BLACK)
+        # label_x = x + size // 2 - label.get_width() // 2
+        # label_y = y + size + 5
+        # screen.blit(label, (label_x, label_y))
 
 
 def animate_removal(element):
@@ -143,51 +173,57 @@ def animate_removal(element):
     })
 
 
-def animate_combination(new_element, pos):
+def animate_combination(new_element, pos, callback):
     """Animate the appearance of a new element (grows and fades in)."""
-    duration = 500
+    duration = 300
     animations.append({
         "type": "combination",
         "start_time": pygame.time.get_ticks(),
         "duration": duration,
         "element": new_element,
         "pos": pos,
+        "callback": callback,
     })
 
 
 def draw_animations():
-    """Handle animations."""
+    """Обрабатывает анимации добавления и удаления элементов."""
     current_time = pygame.time.get_ticks()
     completed_animations = []
 
     for anim in animations:
         elapsed = current_time - anim["start_time"]
-        progress = min(1, elapsed / anim["duration"])
+        progress = min(1, elapsed / anim["duration"])  # Прогресс от 0 до 1
 
         if anim["type"] == "removal":
             element = anim["element"]
-            scale = 1 - progress  # Shrinks over time
-            alpha = int(255 * (1 - progress))
+            scale = 1 - progress  # Сжатие до нуля
+            alpha = int(255 * (1 - progress))  # Прозрачность уменьшается
             icon = element["icon"].copy()
-            icon = pygame.transform.scale(icon, (int(ELEMENT_SIZE * scale), int(ELEMENT_SIZE * scale)))
+            icon = pygame.transform.smoothscale(icon, (int(ELEMENT_SIZE * scale), int(ELEMENT_SIZE * scale)))
             icon.set_alpha(alpha)
             x, y = anim["start_pos"]
             screen.blit(icon, (x + (ELEMENT_SIZE - icon.get_width()) // 2, y + (ELEMENT_SIZE - icon.get_height()) // 2))
+
             if progress == 1:
                 completed_animations.append(anim)
 
         elif anim["type"] == "combination":
             element = anim["element"]
-            scale = progress  # Grows over time
-            alpha = int(255 * progress)
+            scale = progress  # Увеличение от нуля до нормального размера
+            alpha = int(255 * progress)  # Прозрачность увеличивается
             icon = element["icon"].copy()
-            icon = pygame.transform.scale(icon, (int(ELEMENT_SIZE * scale), int(ELEMENT_SIZE * scale)))
+            icon = pygame.transform.smoothscale(icon, (int(ELEMENT_SIZE * scale), int(ELEMENT_SIZE * scale)))
             icon.set_alpha(alpha)
             x, y = anim["pos"]
             screen.blit(icon, (x + (ELEMENT_SIZE - icon.get_width()) // 2, y + (ELEMENT_SIZE - icon.get_height()) // 2))
+
             if progress == 1:
+                if anim.get("callback"):
+                    anim["callback"]()  # Выполнить callback
                 completed_animations.append(anim)
 
+    # Удаление завершённых анимаций
     for anim in completed_animations:
         animations.remove(anim)
 
@@ -239,16 +275,19 @@ while running:
                 if rect1.colliderect(rect2):
                     new_element = combine_elements(el1, el2)
                     if new_element:
-                        animate_combination(new_element, el1["pos"])
-                        field_elements.append(new_element)
                         field_elements.remove(el1)
                         field_elements.remove(el2)
+
+                        def add_new_element():
+                            field_elements.append(new_element)
+
+                        animate_combination(new_element, el1["pos"], callback=add_new_element)
                         break
 
     # Рендеринг
     screen.fill(LIGHT_BLUE)
     pygame.draw.rect(screen, GRAY, (0, 0, 200, HEIGHT))  # Левая панель
-    pygame.draw.rect(screen, DARK_GRAY, (trash_x, trash_y, TRASH_CAN_SIZE, TRASH_CAN_SIZE))  # Корзина
+    pygame.draw.rect(screen, RED, (trash_x, trash_y, TRASH_CAN_SIZE, TRASH_CAN_SIZE))  # Корзина
 
     # Заголовок панели
     unlocked_label = large_font.render("Открытые элементы", True, BLACK)
@@ -273,3 +312,5 @@ while running:
 
 pygame.quit()
 sys.exit()
+
+# все дело в том что element["pos"] используется даже в анимациях, то есть когда элемент уже где на поле для соединения, соответственно надо всегда хранить позицию, надо как то исправить эту часть кода
