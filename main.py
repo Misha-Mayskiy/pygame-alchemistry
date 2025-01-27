@@ -250,7 +250,6 @@ while running:
                     break
 
 
-
         elif event.type == pygame.MOUSEBUTTONUP:
             if dragged_element:
                 # Проверка, попала ли точка в область корзины
@@ -278,8 +277,10 @@ while running:
                         field_elements.remove(el1)
                         field_elements.remove(el2)
 
+
                         def add_new_element():
                             field_elements.append(new_element)
+
 
                         animate_combination(new_element, el1["pos"], callback=add_new_element)
                         break
