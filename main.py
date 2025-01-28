@@ -9,7 +9,7 @@ pygame.init()
 # Screen dimensions
 WIDTH, HEIGHT = 1000, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Игра Алхимия")
+pygame.display.set_caption("Alchemy Game")
 
 # Colors
 WHITE = (255, 255, 255)
@@ -175,7 +175,7 @@ def animate_removal(element):
 
 def animate_combination(new_element, pos, callback):
     """Animate the appearance of a new element (grows and fades in)."""
-    duration = 300
+    duration = 500
     animations.append({
         "type": "combination",
         "start_time": pygame.time.get_ticks(),
