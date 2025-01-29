@@ -297,7 +297,7 @@ while running:
 
     # Рендеринг
     screen.fill(LIGHT_BLUE)
-    pygame.draw.rect(screen, GRAY, (0, 0, 200, HEIGHT))  # Левая панель
+    pygame.draw.rect(screen, GRAY, (0, 0, 245, HEIGHT))  # Левая панель
     pygame.draw.rect(screen, RED, (trash_x, trash_y, TRASH_CAN_SIZE, TRASH_CAN_SIZE))  # Корзина
 
     # Заголовок панели
