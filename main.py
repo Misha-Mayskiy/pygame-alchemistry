@@ -41,6 +41,10 @@ if os.path.exists(placeholder_path):
 else:
     raise FileNotFoundError("Placeholder image 'placeholder.png' not found in 'images' folder!")
 
+# Trash
+trash_icon = pygame.image.load("images/trash.png")
+trash_icon = pygame.transform.scale(trash_icon, (50, 50))  # Масштабируем
+
 # Отступы и размеры для левой панели
 ROW_GAP = 20
 PANEL_PADDING = 10
@@ -75,9 +79,17 @@ trash_x = (WIDTH + 200) // 2 - TRASH_CAN_SIZE // 2
 trash_y = HEIGHT - TRASH_CAN_SIZE - 10
 trash_rect = pygame.Rect(trash_x, trash_y, TRASH_CAN_SIZE, TRASH_CAN_SIZE)
 
+# Left panel dimensions and position
+PANEL_X = 0
+PANEL_Y = 0
+PANEL_WIDTH = 300
+PANEL_HEIGHT = 1000
+left_panel_rect = pygame.Rect(PANEL_X, PANEL_Y, PANEL_WIDTH, PANEL_HEIGHT)
+
 # Interactive elements on the field
 field_elements = []
 dragged_element = None
+temp_element = None  # Временная переменная для создания элемента
 drag_offset = (0, 0)
 
 # Animation variables
@@ -249,16 +261,14 @@ while running:
                             dragged_element = new_element
                     break
 
-
         elif event.type == pygame.MOUSEBUTTONUP:
             if dragged_element:
                 # Проверка, попала ли точка в область корзины
-                if trash_rect.collidepoint(event.pos) and dragged_element in field_elements:
+                if ((trash_rect.collidepoint(event.pos) or left_panel_rect.collidepoint(event.pos))
+                        and dragged_element in field_elements):
                     animate_removal(dragged_element)
                     field_elements.remove(dragged_element)
-
                 dragged_element = None
-
 
         elif event.type == pygame.MOUSEMOTION:
             if dragged_element and dragged_element in field_elements:
@@ -313,5 +323,3 @@ while running:
 
 pygame.quit()
 sys.exit()
-
-# все дело в том что element["pos"] используется даже в анимациях, то есть когда элемент уже где на поле для соединения, соответственно надо всегда хранить позицию, надо как то исправить эту часть кода
